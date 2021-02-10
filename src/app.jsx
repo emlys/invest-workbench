@@ -9,14 +9,9 @@ import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
 import Button from 'react-bootstrap/Button';
 
-import HomeTab from './components/HomeTab';
-import InvestTab from './components/InvestTab';
-import LoadButton from './components/LoadButton';
-import SettingsModal from './components/SettingsModal';
 import { getInvestModelNames } from './server_requests';
 import { getLogger } from './logger';
 import InvestJob from './InvestJob';
-import { dragOverHandlerNone } from './utils.js';
 
 const logger = getLogger(__filename.split('/').slice(-1)[0]);
 
@@ -34,11 +29,8 @@ export default class App extends React.Component {
       investSettings: {},
     };
     this.saveSettings = this.saveSettings.bind(this);
-    this.switchTabs = this.switchTabs.bind(this);
     this.openInvestModel = this.openInvestModel.bind(this);
     this.closeInvestModel = this.closeInvestModel.bind(this);
-    this.saveJob = this.saveJob.bind(this);
-    this.clearRecentJobs = this.clearRecentJobs.bind(this);
   }
 
   /** Initialize the list of available invest models and recent invest jobs. */
@@ -58,15 +50,6 @@ export default class App extends React.Component {
     });
   }
 
-  /** Change the tab that is currently visible.
-   *
-   * @param {string} key - the value of one of the Nav.Link eventKey.
-   */
-  switchTabs(key) {
-    this.setState(
-      { activeTab: key }
-    );
-  }
 
   saveSettings(settings) {
     this.setState({
@@ -114,23 +97,6 @@ export default class App extends React.Component {
     });
   }
 
-  /** Save data describing an invest job to a persistent JSON file.
-   *
-   * @param {object} job - as constructed by new InvestJob()
-   */
-  async saveJob(job) {
-    const recentJobs = await job.save();
-    this.setState({
-      recentJobs: recentJobs,
-    });
-  }
-
-  async clearRecentJobs() {
-    const recentJobs = await InvestJob.clearStore();
-    this.setState({
-      recentJobs: recentJobs,
-    });
-  }
 
   render() {
     const { investExe } = this.props;
@@ -142,85 +108,15 @@ export default class App extends React.Component {
       activeTab,
     } = this.state;
 
-    const investNavItems = [];
-    const investTabPanes = [];
-    openJobs.forEach((job) => {
-      investNavItems.push(
-        <Nav.Item key={job.metadata.navID}>
-          <Nav.Link eventKey={job.metadata.navID}>
-            {job.metadata.modelHumanName}
-            <Button
-              className="close-tab"
-              variant="outline-dark"
-              onClick={(event) => {
-                event.stopPropagation();
-                this.closeInvestModel(job.metadata.navID);
-              }}
-              onDragOver={dragOverHandlerNone}
-            >
-              x
-            </Button>
-          </Nav.Link>
-        </Nav.Item>
-      );
-      investTabPanes.push(
-        <TabPane
-          key={job.metadata.navID}
-          eventKey={job.metadata.navID}
-          title={job.metadata.modelHumanName}
-        >
-          <InvestTab
-            job={job}
-            investExe={investExe}
-            investSettings={investSettings}
-            saveJob={this.saveJob}
-          />
-        </TabPane>
-      );
-    });
-
     return (
       <TabContainer activeKey={activeTab}>
-        <Navbar onDragOver={dragOverHandlerNone}>
-          <Navbar.Brand onDragOver={dragOverHandlerNone}>
-            <Nav.Link 
-              onSelect={this.switchTabs} 
-              eventKey="home"
-              onDragOver={dragOverHandlerNone}>
+        <Navbar>
+          <Navbar.Brand>
+            <Nav.Link>
               InVEST
             </Nav.Link>
           </Navbar.Brand>
-          <Nav
-            variant="pills"
-            className="mr-auto horizontal-scroll"
-            activeKey={activeTab}
-            onSelect={this.switchTabs}
-            onDragOver={dragOverHandlerNone}
-          >
-            {investNavItems}
-          </Nav>
-          <LoadButton
-            openInvestModel={this.openInvestModel}
-            batchUpdateArgs={this.batchUpdateArgs}
-          />
-          <SettingsModal
-            className="mx-3"
-            saveSettings={this.saveSettings}
-            investSettings={investSettings}
-            clearStorage={this.clearRecentJobs}
-          />
         </Navbar>
-
-        <TabContent id="top-tab-content">
-          <TabPane eventKey="home" title="Home">
-            <HomeTab
-              investList={investList}
-              openInvestModel={this.openInvestModel}
-              recentJobs={recentJobs}
-            />
-          </TabPane>
-          {investTabPanes}
-        </TabContent>
       </TabContainer>
     );
   }
