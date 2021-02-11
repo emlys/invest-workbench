@@ -133,94 +133,13 @@ export default class App extends React.Component {
   }
 
   render() {
-    const { investExe } = this.props;
-    const {
-      investList,
-      investSettings,
-      recentJobs,
-      openJobs,
-      activeTab,
-    } = this.state;
-
-    const investNavItems = [];
-    const investTabPanes = [];
-    openJobs.forEach((job) => {
-      investNavItems.push(
-        <Nav.Item key={job.metadata.navID}>
-          <Nav.Link eventKey={job.metadata.navID}>
-            {job.metadata.modelHumanName}
-            <Button
-              className="close-tab"
-              variant="outline-dark"
-              onClick={(event) => {
-                event.stopPropagation();
-                this.closeInvestModel(job.metadata.navID);
-              }}
-              onDragOver={dragOverHandlerNone}
-            >
-              x
-            </Button>
-          </Nav.Link>
-        </Nav.Item>
-      );
-      investTabPanes.push(
-        <TabPane
-          key={job.metadata.navID}
-          eventKey={job.metadata.navID}
-          title={job.metadata.modelHumanName}
-        >
-          <InvestTab
-            job={job}
-            investExe={investExe}
-            investSettings={investSettings}
-            saveJob={this.saveJob}
-          />
-        </TabPane>
-      );
-    });
-
     return (
-      <TabContainer activeKey={activeTab}>
-        <Navbar onDragOver={dragOverHandlerNone}>
-          <Navbar.Brand onDragOver={dragOverHandlerNone}>
-            <Nav.Link 
-              onSelect={this.switchTabs} 
-              eventKey="home"
-              onDragOver={dragOverHandlerNone}>
-              InVEST
-            </Nav.Link>
+      <TabContainer>
+        <Navbar>
+          <Navbar.Brand>
+            InVEST
           </Navbar.Brand>
-          <Nav
-            variant="pills"
-            className="mr-auto horizontal-scroll"
-            activeKey={activeTab}
-            onSelect={this.switchTabs}
-            onDragOver={dragOverHandlerNone}
-          >
-            {investNavItems}
-          </Nav>
-          <LoadButton
-            openInvestModel={this.openInvestModel}
-            batchUpdateArgs={this.batchUpdateArgs}
-          />
-          <SettingsModal
-            className="mx-3"
-            saveSettings={this.saveSettings}
-            investSettings={investSettings}
-            clearStorage={this.clearRecentJobs}
-          />
         </Navbar>
-
-        <TabContent id="top-tab-content">
-          <TabPane eventKey="home" title="Home">
-            <HomeTab
-              investList={investList}
-              openInvestModel={this.openInvestModel}
-              recentJobs={recentJobs}
-            />
-          </TabPane>
-          {investTabPanes}
-        </TabContent>
       </TabContainer>
     );
   }
